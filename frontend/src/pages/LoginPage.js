@@ -175,10 +175,10 @@ export default function LoginPage() {
         <div className="login-hint">
           <strong style={{ color: 'rgba(255,255,255,0.8)' }}>Demo Accounts</strong><br />
           <span style={{ cursor: 'pointer', color: '#a5b4fc' }} onClick={() => fillDemo('admin')}>
-            👑 Admin: admin@company.com / admin123
+           
           </span><br />
           <span style={{ cursor: 'pointer', color: '#a5b4fc' }} onClick={() => fillDemo('dev')}>
-            💻 Developer: dev1@company.com / dev123
+            
           </span><br />
           <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px', display: 'block' }}>
             Click to auto-fill credentials
