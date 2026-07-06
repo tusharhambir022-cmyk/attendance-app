@@ -172,18 +172,18 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="login-hint">
-          <strong style={{ color: 'rgba(255,255,255,0.8)' }}>Demo Accounts</strong><br />
-          <span style={{ cursor: 'pointer', color: '#a5b4fc' }} onClick={() => fillDemo('admin')}>
-           
-          </span><br />
-          <span style={{ cursor: 'pointer', color: '#a5b4fc' }} onClick={() => fillDemo('dev')}>
-            
-          </span><br />
-          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px', display: 'block' }}>
-            Click to auto-fill credentials
-          </span>
-        </div>
+        {/*<div className="login-hint">*/}
+        {/*  <strong style={{ color: 'rgba(255,255,255,0.8)' }}>Demo Accounts</strong><br />*/}
+        {/*  <span style={{ cursor: 'pointer', color: '#a5b4fc' }} onClick={() => fillDemo('admin')}>*/}
+        {/*   */}
+        {/*  </span><br />*/}
+        {/*  <span style={{ cursor: 'pointer', color: '#a5b4fc' }} onClick={() => fillDemo('dev')}>*/}
+        {/*    */}
+        {/*  </span><br />*/}
+        {/*  <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px', display: 'block' }}>*/}
+        {/*    Click to auto-fill credentials*/}
+        {/*  </span>*/}
+        {/*</div>*/}
       </div>
     </div>
   );
