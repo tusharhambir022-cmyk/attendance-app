@@ -3,6 +3,7 @@ import { checkIn, checkOut, getTodayAttendance, getMyMonthSummary, getLeaveBalan
 import { useToast } from '../../hooks/useToast';
 import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
+import { formatIST } from '../../services/timeUtils';
 
 function LeaveBalanceBar({ label, used, total, color }) {
   const pct = total > 0 ? Math.min((used / total) * 100, 100) : 0;
@@ -111,9 +112,9 @@ export default function DevDashboard() {
           </div>
           <div className="checkin-status">
             {isCheckedOut
-              ? `✅ Worked ${today.workingHours || 'today'} · Checked out at ${format(new Date(today.checkOut), 'h:mm a')}`
+              ? `✅ Worked ${today.workingHours || 'today'} · Checked out at ${formatIST(today.checkOut)}`
               : isCheckedIn
-              ? `🟢 Checked in at ${format(new Date(today.checkIn), 'h:mm a')} · You're on the clock`
+              ? `🟢 Checked in at ${formatIST(today.checkIn)} · You're on the clock`
               : '⚪ Not checked in yet today'}
           </div>
         </div>
@@ -172,7 +173,6 @@ export default function DevDashboard() {
       </div>
 
       <div className="grid-2">
-        {/* Leave Balance */}
         {balance && (
           <div className="card">
             <div className="card-header"><span className="card-title">Leave Balance {new Date().getFullYear()}</span></div>
@@ -184,7 +184,6 @@ export default function DevDashboard() {
           </div>
         )}
 
-        {/* Recent Leaves */}
         <div className="card">
           <div className="card-header"><span className="card-title">Recent Leave Requests</span></div>
           <div className="card-body" style={{ padding: 0 }}>
