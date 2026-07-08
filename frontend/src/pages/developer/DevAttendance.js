@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getMyAttendance, getMyMonthSummary } from '../../services/api';
 import { format, startOfMonth } from 'date-fns';
 import { useToast } from '../../hooks/useToast';
+import { formatIST } from '../../services/timeUtils';
 
 const STATUS_BADGE = {
   PRESENT: <span className="badge badge-success">✅ Present</span>,
@@ -48,11 +49,10 @@ export default function DevAttendance() {
       <div className="page-header">
         <div>
           <h1 className="page-title">My Attendance</h1>
-          <p className="page-sub">Your attendance history and working hours</p>
+          <p className="page-sub">Your attendance history and working hours (IST)</p>
         </div>
       </div>
 
-      {/* Monthly Summary */}
       {summary && (
         <div className="stats-grid" style={{ marginBottom: '24px' }}>
           {[
@@ -72,7 +72,6 @@ export default function DevAttendance() {
         </div>
       )}
 
-      {/* Filter */}
       <div className="card mb-6">
         <div className="card-body">
           <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -89,7 +88,6 @@ export default function DevAttendance() {
         </div>
       </div>
 
-      {/* Records */}
       <div className="card">
         <div className="card-header" style={{ paddingBottom: '12px' }}>
           <span className="card-title">Attendance Records</span>
@@ -110,8 +108,8 @@ export default function DevAttendance() {
                   <tr>
                     <th>Date</th>
                     <th>Day</th>
-                    <th>Check In</th>
-                    <th>Check Out</th>
+                    <th>Check In (IST)</th>
+                    <th>Check Out (IST)</th>
                     <th>Hours</th>
                     <th>Status</th>
                   </tr>
@@ -122,10 +120,10 @@ export default function DevAttendance() {
                       <td style={{ fontWeight: 500 }}>{format(new Date(a.date), 'd MMM yyyy')}</td>
                       <td style={{ color: 'var(--text-muted)' }}>{format(new Date(a.date), 'EEE')}</td>
                       <td style={{ fontFamily: 'monospace', color: 'var(--success)', fontWeight: 500 }}>
-                        {a.checkIn ? format(new Date(a.checkIn), 'hh:mm a') : <span style={{ color: 'var(--text-light)' }}>–</span>}
+                        {a.checkIn ? formatIST(a.checkIn) : <span style={{ color: 'var(--text-light)' }}>–</span>}
                       </td>
                       <td style={{ fontFamily: 'monospace', color: 'var(--text-muted)', fontWeight: 500 }}>
-                        {a.checkOut ? format(new Date(a.checkOut), 'hh:mm a') : <span style={{ color: 'var(--text-light)' }}>–</span>}
+                        {a.checkOut ? formatIST(a.checkOut) : <span style={{ color: 'var(--text-light)' }}>–</span>}
                       </td>
                       <td style={{ fontWeight: 600 }}>
                         {a.workingHours || <span style={{ color: 'var(--text-light)', fontWeight: 400 }}>–</span>}
