@@ -5,6 +5,58 @@ import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
 import { formatIST } from '../../services/timeUtils';
 
+// ==============================
+// OFFICE LOCATION - Parihar Chowk, Aundh, Pune
+// ==============================
+const OFFICE_LAT = 18.560416;
+const OFFICE_LNG = 73.808324;
+const ALLOWED_RADIUS_METERS = 300;
+
+function getDistanceInMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+async function checkOfficeLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('GPS not supported on this device'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const distance = getDistanceInMeters(
+          latitude, longitude,
+          OFFICE_LAT, OFFICE_LNG
+        );
+        if (distance <= ALLOWED_RADIUS_METERS) {
+          resolve({ allowed: true, distance: Math.round(distance) });
+        } else {
+          resolve({ allowed: false, distance: Math.round(distance) });
+        }
+      },
+      (error) => {
+        if (error.code === 1) {
+          reject(new Error('Location permission denied. Please allow location to check in.'));
+        } else {
+          reject(new Error('Unable to get location. Please enable GPS and try again.'));
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+}
+
 function LeaveBalanceBar({ label, used, total, color }) {
   const pct = total > 0 ? Math.min((used / total) * 100, 100) : 0;
   return (
@@ -29,9 +81,9 @@ export default function DevDashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [locationChecking, setLocationChecking] = useState(false);
   const { showToast, ToastComponent } = useToast();
 
-  // Live clock
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -56,26 +108,52 @@ export default function DevDashboard() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleCheckIn = async () => {
-    setActionLoading(true);
+    setLocationChecking(true);
     try {
+      const location = await checkOfficeLocation();
+      setLocationChecking(false);
+
+      if (!location.allowed) {
+        showToast(
+          `❌ You are ${location.distance}m away from office. Must be within ${ALLOWED_RADIUS_METERS}m to check in.`,
+          'error'
+        );
+        return;
+      }
+
+      setActionLoading(true);
       await checkIn();
-      showToast('Checked in! Have a productive day 🚀');
+      showToast('✅ Checked in! Have a productive day 🚀');
       fetchData();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Check-in failed', 'error');
+      setLocationChecking(false);
+      showToast(err.message || 'Check-in failed', 'error');
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleCheckOut = async () => {
-    setActionLoading(true);
+    setLocationChecking(true);
     try {
+      const location = await checkOfficeLocation();
+      setLocationChecking(false);
+
+      if (!location.allowed) {
+        showToast(
+          `❌ You are ${location.distance}m away from office. Must be within ${ALLOWED_RADIUS_METERS}m to check out.`,
+          'error'
+        );
+        return;
+      }
+
+      setActionLoading(true);
       await checkOut();
-      showToast('Checked out! See you tomorrow 👋');
+      showToast('👋 Checked out! See you tomorrow');
       fetchData();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Check-out failed', 'error');
+      setLocationChecking(false);
+      showToast(err.message || 'Check-out failed', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -83,6 +161,7 @@ export default function DevDashboard() {
 
   const isCheckedIn = today?.checkIn && !today?.checkOut;
   const isCheckedOut = today?.checkIn && today?.checkOut;
+  const isButtonLoading = actionLoading || locationChecking;
 
   const LEAVE_STATUS_BADGE = {
     PENDING: <span className="badge badge-warning">Pending</span>,
@@ -117,17 +196,22 @@ export default function DevDashboard() {
               ? `🟢 Checked in at ${formatIST(today.checkIn)} · You're on the clock`
               : '⚪ Not checked in yet today'}
           </div>
+          {!isCheckedOut && (
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginTop: '6px' }}>
+              📍 Check in/out requires office location (300m radius)
+            </div>
+          )}
         </div>
 
         {isCheckedOut ? (
           <button className="btn-checkin" disabled>Done for Today ✅</button>
         ) : isCheckedIn ? (
-          <button className="btn-checkin check-out" onClick={handleCheckOut} disabled={actionLoading}>
-            {actionLoading ? '...' : 'Check Out →'}
+          <button className="btn-checkin check-out" onClick={handleCheckOut} disabled={isButtonLoading}>
+            {locationChecking ? '📍 Checking...' : actionLoading ? '...' : 'Check Out →'}
           </button>
         ) : (
-          <button className="btn-checkin check-in" onClick={handleCheckIn} disabled={actionLoading}>
-            {actionLoading ? '...' : 'Check In →'}
+          <button className="btn-checkin check-in" onClick={handleCheckIn} disabled={isButtonLoading}>
+            {locationChecking ? '📍 Checking...' : actionLoading ? '...' : 'Check In →'}
           </button>
         )}
       </div>
